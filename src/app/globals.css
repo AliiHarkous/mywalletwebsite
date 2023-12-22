@@ -3,25 +3,52 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  font-family: "Montserat";
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  .headless-table {
+    .page-container {
+      max-width: 1000px;
+      padding: 32px;
+      margin-right: auto;
+      margin-left: auto;
+    }
+    .container {
+      padding-left: 16px;
+      padding-right: 16px;
+      margin-right: auto;
+      margin-left: auto;
+    }
+
+    thead {
+      tr {
+        border: 1px solid black;
+        display: grid;
+      }
+
+      th {
+        border-right: 1px solid black;
+        text-align: start;
+        padding-left: 0.5rem;
+      }
+      th:last-child {
+        border: none;
+      }
+    }
+    tbody {
+      tr {
+        border: 1px solid black;
+        border-top: none;
+        display: grid;
+
+        td {
+          padding-left: 0.5rem;
+          border-right: 1px solid black;
+        }
+        td:last-child {
+          border: none;
+        }
+      }
+    }
+  }
 }
