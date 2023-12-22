@@ -36,5 +36,3 @@ next.config.js
 *.tsbuildinfo
 next-env.d.ts
 
-# firebase config
-firebase.ts
