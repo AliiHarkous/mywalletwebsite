@@ -1,6 +1,7 @@
 import { useAuth } from "@/auth/AuthProvider";
 import { redirect, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { Button } from "./Button";
 
 export const Login = () => {
   const [email, setEmail] = useState<string>("");
@@ -14,13 +15,14 @@ export const Login = () => {
   }, [user]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-24">
+    <div className="flex container min-h-screen flex-col items-center justify-center p-24 text-4xl">
       <div
         style={{
-          border: "1px solid black",
-          borderRadius: "32px",
+          borderRadius: "20px",
+          backgroundColor: "#edf0f3",
+          boxShadow: "1px 1px 1px 2px  rgba(0, 0, 0, 0.1)",
         }}
-        className="bg-[#c9c9c9] space-y-4 min-w-[400px] flex flex-col justify-center items-center p-4"
+        className="space-y-4 flex flex-col justify-center items-center p-4"
       >
         <div className="text-center ">Login</div>
         <div>aliiharkous@gmail.com</div>
@@ -37,6 +39,7 @@ export const Login = () => {
             className="px-2 focus:outline-none"
             style={{
               borderRadius: "10px",
+              fontSize: "20px",
               border: "1px solid black",
             }}
           />
@@ -45,6 +48,7 @@ export const Login = () => {
           <input
             placeholder="Password"
             type="text"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -53,23 +57,26 @@ export const Login = () => {
             style={{
               borderRadius: "10px",
               border: "1px solid black",
+              fontSize: "20px",
             }}
           />
         </div>
         <div>
-          <button
-            onClick={async (e) => {
-              e.preventDefault();
+          <Button
+            onClick={async () => {
               if (login == null) {
                 return;
               }
               await login(email, password);
               push("/private");
             }}
-            className="px-4 py-2 bg-white rounded-xl"
-          >
-            Sign in
-          </button>
+            style={{
+              backgroundColor: "black",
+              color: "white",
+              fontSize: "14px",
+            }}
+            value={<div>Sign in</div>}
+          />
         </div>
       </div>
     </div>
