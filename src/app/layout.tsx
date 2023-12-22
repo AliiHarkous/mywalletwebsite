@@ -4,6 +4,7 @@ import Providers from "@/auth/Providers";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "./globals.css";
+import { DatesProvider } from "@mantine/dates";
 
 export const metadata: Metadata = {
   title: "My Wallet",
@@ -18,7 +19,13 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <MantineProvider>
-          <Providers>{children}</Providers>
+          <DatesProvider
+            settings={{
+              timezone: "Etc/GMT-2",
+            }}
+          >
+            <Providers>{children}</Providers>
+          </DatesProvider>
         </MantineProvider>
       </body>
     </html>

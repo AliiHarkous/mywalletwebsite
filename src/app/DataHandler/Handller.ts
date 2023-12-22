@@ -4,8 +4,45 @@ import {
   collection,
   deleteDoc,
   doc,
+  onSnapshot,
+  orderBy,
+  query,
   updateDoc,
 } from "firebase/firestore";
+import { IArrayOfDataWithId } from "../private/page";
+
+// fetch Documents
+const incomesQuery = query(
+  collection(db, "Wallet", "Incomes", "children"),
+  orderBy("date", "desc")
+);
+const expensesQuery = query(
+  collection(db, "Wallet", "Expenses", "children"),
+  orderBy("date", "desc")
+);
+export const unsubscribeIncomes = (
+  setIncomes: (incomesRes: IArrayOfDataWithId) => void
+) => {
+  onSnapshot(incomesQuery, (querySnapshot) => {
+    const incomesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      data: doc.data(),
+    }));
+    setIncomes(incomesRes);
+  });
+};
+export const unsubscribeExpenses = (
+  setExpenses: (expensesRes: IArrayOfDataWithId) => void
+) => {
+  onSnapshot(expensesQuery, (querySnapshot) => {
+    const expensesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      data: doc.data(),
+    }));
+    setExpenses(expensesRes);
+  });
+};
+// Edit Add Delete Fields
 
 export type IFields = {
   amount: number;
