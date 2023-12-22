@@ -12,3 +12,5 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+// this is not pushed due to privacy reasons
