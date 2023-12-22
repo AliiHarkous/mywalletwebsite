@@ -42,8 +42,8 @@ export const unsubscribeExpenses = (
     setExpenses(expensesRes);
   });
 };
-// Edit Add Delete Fields
 
+// Edit Add Delete Fields
 export type IFields = {
   amount: number;
   date: number;
