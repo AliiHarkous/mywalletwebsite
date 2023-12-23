@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "export",
   env: {
     NEXT_PUBLIC_FIREBASE_API_KEY: "AIzaSyBUf-58dnhfJ2GyEkrFHJjYF31-ZOboNKE",
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "mywallet-64ac2.firebaseapp.com",
