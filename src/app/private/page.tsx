@@ -143,7 +143,7 @@ export default function page() {
             <strong>Total Incomes:</strong> {totalIncomes}$
           </div>
           <div>
-            <strong>Total:</strong> {total}$
+            <strong>Total TEst:</strong> {total}$
           </div>
           <div>
             <strong>Total Expenses:</strong> {totalExpenses}$
