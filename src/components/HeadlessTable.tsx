@@ -42,7 +42,6 @@ export const HeadlessTable = (props: Props) => {
     data.forEach((d) => {
       const id = d.id;
       const date = d.data.date;
-
       const details = d.data.details;
       const currency = d.data.currency;
       const amount = d.data.amount;

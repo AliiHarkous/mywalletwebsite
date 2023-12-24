@@ -38,7 +38,6 @@ export default function Pop(props: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
-
   const options1 = ["LBP", "USD"];
   const options = options1.map((item) => (
     <Combobox.Option value={item} key={item}>

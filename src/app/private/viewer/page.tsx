@@ -1,26 +1,24 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@/auth/AuthProvider";
-import { useRouter } from "next/navigation";
+
+// import { Combobox, Input, InputBase, useCombobox } from "@mantine/core";
+import { DateTimePicker, DateValue } from "@mantine/dates";
 import { HeadlessTable } from "@/components/HeadlessTable";
-import { DocumentData } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import Pop, { IAction } from "@/components/Pop";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import { Button } from "@/components/Button";
-import Swiper from "swiper";
+import { useAuth } from "@/auth/AuthProvider";
 import { Navigation } from "swiper/modules";
+import { IArrayOfDataWithId } from "../page";
+import { Button } from "@/components/Button";
+import { useRouter } from "next/navigation";
+import Swiper from "swiper";
 import {
-  unsubscribeExpenses,
-  unsubscribeIncomes,
-} from "../DataHandler/Handller";
-export type IArrayOfDataWithId = Array<{ data: DocumentData; id: string }>;
+  unsubscribeIncomesByTime,
+  unsubscribeExpensesByTime,
+} from "../../DataHandler/Handller";
 
 export default function page() {
   useEffect(() => {
     const swiper = new Swiper(".swiper", {
-      // If we need pagination
       modules: [Navigation],
       slidesPerView: 1,
       centeredSlides: true,
@@ -30,12 +28,10 @@ export default function page() {
       },
     });
   });
+  const { user, logout } = useAuth();
+  const [action, setAction] = useState<IAction | null>(null);
   const [incomes, setIncomes] = useState<IArrayOfDataWithId | null>(null);
   const [expenses, setExpenses] = useState<IArrayOfDataWithId | null>(null);
-  const [total, setTotal] = useState<number>(0);
-  const [totalExpenses, setTotalExpenses] = useState<number>(0);
-  const [totalIncomes, setTotalIncomes] = useState<number>(0);
-
   const [data, setData] = useState<{
     incomes: IArrayOfDataWithId | null;
     expenses: IArrayOfDataWithId | null;
@@ -44,17 +40,19 @@ export default function page() {
     expenses: null,
   });
   const { push } = useRouter();
-  const { user, logout } = useAuth();
-  const [action, setAction] = useState<IAction | null>(null);
-
-  useEffect(() => {
-    setData({ incomes, expenses });
-  }, [incomes, expenses]);
-
-  useEffect(() => {
-    unsubscribeIncomes(setIncomes);
-    unsubscribeExpenses(setExpenses);
-  }, []);
+  const [value, setValue] = useState<string>("Month");
+  const today = new Date();
+  const [from, setFrom] = useState<DateValue>(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+  today.setHours(23);
+  today.setMinutes(59);
+  today.setSeconds(59);
+  today.setMilliseconds(0);
+  const [to, setTo] = useState<DateValue>(today);
+  const [total, setTotal] = useState<number>(0);
+  const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  const [totalIncomes, setTotalIncomes] = useState<number>(0);
 
   useEffect(() => {
     if (data.expenses != null && data.incomes != null) {
@@ -76,7 +74,55 @@ export default function page() {
       setTotal(tempTotalIncomes - tempTotalExpenses);
     }
   }, [data]);
-  //guard
+  useEffect(() => {
+    setData({ incomes, expenses });
+  }, [incomes, expenses]);
+
+  useEffect(() => {
+    if (from != null && to != null) {
+      unsubscribeIncomesByTime(setIncomes, from.getTime(), to.getTime());
+      unsubscribeExpensesByTime(setExpenses, from.getTime(), to.getTime());
+    }
+  }, [from, to]);
+
+  // const combobox = useCombobox({
+  //   onDropdownClose: () => combobox.resetSelectedOption(),
+  // });
+  {
+    /*  const tempOptions = ["Week", "Month", "QuarterYear", "HalfYear", "Year"];
+        const options = tempOptions.map((item) => (
+          <Combobox.Option value={item} key={item}>
+            {item}
+          </Combobox.Option>
+        )); */
+  }
+  {
+    /* <div>By &nbsp;</div>
+        <Combobox
+          store={combobox}
+          onOptionSubmit={(val) => {
+            setValue(val);
+            combobox.closeDropdown();
+          }}
+        >
+          <Combobox.Target>
+            <InputBase
+              component="button"
+              type="button"
+              pointer
+              rightSection={<Combobox.Chevron />}
+              rightSectionPointerEvents="none"
+              onClick={() => combobox.toggleDropdown()}
+            >
+              {value || <Input.Placeholder>Pick value</Input.Placeholder>}
+            </InputBase>
+          </Combobox.Target>
+
+          <Combobox.Dropdown>
+            <Combobox.Options>{options}</Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox> */
+  }
   if (user == null) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -84,9 +130,8 @@ export default function page() {
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen relative">
+    <div>
       <div className="container space-y-4">
         <div className="flex justify-end w-full">
           <Button
@@ -120,17 +165,6 @@ export default function page() {
           <Button
             disabled={action != null}
             onClick={() => {
-              push("/private/viewer");
-            }}
-            style={{
-              backgroundColor: "grey",
-              color: "black",
-            }}
-            value={<div>Viewer</div>}
-          />
-          <Button
-            disabled={action != null}
-            onClick={() => {
               setAction({ type: "addExpense", data: null });
             }}
             style={{
@@ -151,10 +185,33 @@ export default function page() {
             <strong>Total Expenses:</strong> {totalExpenses}$
           </div>
         </div>
+        <div className="flex justify-center items-center gap-10">
+          <div>
+            <div>From</div>
+            <DateTimePicker
+              className="text-[10px]"
+              value={from}
+              onChange={(date) => {
+                setFrom(date);
+              }}
+            />
+          </div>
+          <div>
+            <div>To</div>
+            <DateTimePicker
+              className="text-[10px]"
+              value={to}
+              onChange={(date) => {
+                setTo(date);
+              }}
+            />
+          </div>
+        </div>
       </div>
-      <div className="swiper">
-        <div className="swiper-wrapper w-full">
-          {data.incomes != null && (
+
+      {data.incomes != null && data.expenses != null && (
+        <div className="swiper">
+          <div className="swiper-wrapper w-full">
             <div className="swiper-slide px-4">
               <HeadlessTable
                 type={"incomes"}
@@ -164,8 +221,6 @@ export default function page() {
                 }}
               />
             </div>
-          )}
-          {data.expenses != null && (
             <div className="swiper-slide px-4">
               <HeadlessTable
                 type={"expenses"}
@@ -175,11 +230,12 @@ export default function page() {
                 }}
               />
             </div>
-          )}
+          </div>
+
+          <div className="swiper-button-prev"></div>
+          <div className="swiper-button-next"></div>
         </div>
-        <div className="swiper-button-prev"></div>
-        <div className="swiper-button-next"></div>
-      </div>
+      )}
       {action != null && (
         <Pop
           action={action}
@@ -191,8 +247,3 @@ export default function page() {
     </div>
   );
 }
-
-// add tags which allow me to join them each category
-// add expenses,incomes
-// check expenses,incomes
-// overall month

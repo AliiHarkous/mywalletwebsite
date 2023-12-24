@@ -1,46 +1,103 @@
 import { db } from "@/firebase/firebase";
 import {
+  DocumentData,
+  Query,
   addDoc,
   collection,
   deleteDoc,
   doc,
+  getDoc,
+  getDocs,
+  limit,
   onSnapshot,
   orderBy,
   query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { IArrayOfDataWithId } from "../private/page";
+import { DateValue } from "@mantine/dates";
 
 // fetch Documents
-const incomesQuery = query(
-  collection(db, "Wallet", "Incomes", "children"),
-  orderBy("date", "desc")
-);
-const expensesQuery = query(
-  collection(db, "Wallet", "Expenses", "children"),
-  orderBy("date", "desc")
-);
 export const unsubscribeIncomes = (
   setIncomes: (incomesRes: IArrayOfDataWithId) => void
 ) => {
-  onSnapshot(incomesQuery, (querySnapshot) => {
-    const incomesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      data: doc.data(),
-    }));
-    setIncomes(incomesRes);
-  });
+  onSnapshot(
+    query(
+      collection(db, "Wallet", "Incomes", "children"),
+      orderBy("date", "desc")
+    ),
+    (querySnapshot) => {
+      const incomesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }));
+      setIncomes(incomesRes);
+    }
+  );
 };
+
 export const unsubscribeExpenses = (
   setExpenses: (expensesRes: IArrayOfDataWithId) => void
 ) => {
-  onSnapshot(expensesQuery, (querySnapshot) => {
-    const expensesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      data: doc.data(),
-    }));
-    setExpenses(expensesRes);
-  });
+  onSnapshot(
+    query(
+      collection(db, "Wallet", "Expenses", "children"),
+      orderBy("date", "desc")
+    ),
+    (querySnapshot) => {
+      const expensesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }));
+      setExpenses(expensesRes);
+    }
+  );
+};
+
+// fecth Documents by time
+export const unsubscribeIncomesByTime = (
+  setIncomes: (incomesRes: IArrayOfDataWithId) => void,
+  from: number,
+  to: number
+) => {
+  onSnapshot(
+    query(
+      collection(db, "Wallet", "Incomes", "children"),
+      orderBy("date", "desc"),
+      where("date", ">=", from),
+      where("date", "<=", to)
+    ),
+    (querySnapshot) => {
+      const incomesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }));
+      setIncomes(incomesRes);
+    }
+  );
+};
+
+export const unsubscribeExpensesByTime = (
+  setExpenses: (expensesRes: IArrayOfDataWithId) => void,
+  from: number,
+  to: number
+) => {
+  onSnapshot(
+    query(
+      collection(db, "Wallet", "Expenses", "children"),
+      orderBy("date", "desc"),
+      where("date", ">=", from),
+      where("date", "<=", to)
+    ),
+    (querySnapshot) => {
+      const expensesRes: IArrayOfDataWithId = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        data: doc.data(),
+      }));
+      setExpenses(expensesRes);
+    }
+  );
 };
 
 // Edit Add Delete Fields
