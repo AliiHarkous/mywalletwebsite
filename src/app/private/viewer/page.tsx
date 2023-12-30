@@ -214,6 +214,7 @@ export default function page() {
           <div className="swiper-wrapper w-full">
             <div className="swiper-slide px-4">
               <HeadlessTable
+                buttonDisabled={action != null}
                 type={"incomes"}
                 data={data.incomes}
                 setAction={(action: IAction | null) => {
@@ -223,6 +224,7 @@ export default function page() {
             </div>
             <div className="swiper-slide px-4">
               <HeadlessTable
+                buttonDisabled={action != null}
                 type={"expenses"}
                 data={data.expenses}
                 setAction={(action: IAction | null) => {
