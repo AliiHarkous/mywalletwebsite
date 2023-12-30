@@ -25,8 +25,6 @@ export const Login = () => {
         className="space-y-4 flex flex-col justify-center items-center p-4"
       >
         <div className="text-center ">Login</div>
-        <div>aliiharkous@gmail.com</div>
-        <div>Lana250731$</div>
         <div>
           <input
             placeholder="Email"
