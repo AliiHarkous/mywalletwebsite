@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 type Props = {
   type: "incomes" | "expenses";
   data: IArrayOfDataWithId;
+  buttonDisabled: boolean;
   setAction: (action: IAction | null) => void;
 };
 
@@ -25,7 +26,7 @@ export type docData = {
 };
 
 export const HeadlessTable = (props: Props) => {
-  const { setAction, data, type } = props;
+  const { setAction, data, type, buttonDisabled } = props;
   const header = ["Date", "Details", "Currency", "Amount"];
   const [showEditor, setShowEditor] = useState<boolean>(false);
 
@@ -54,7 +55,31 @@ export const HeadlessTable = (props: Props) => {
   const formatedData = formatData();
   return (
     <div className="headless-table space-y-4">
-      <div className="capitalize-first text-center text-3xl">{type}</div>
+      <div className="flex justify-around">
+        <div className="capitalize-first text-center text-3xl">{type}</div>
+
+        <Button
+          disabled={buttonDisabled}
+          onClick={() => {
+            if (type === "expenses") {
+              setAction({ type: "addExpense", data: null });
+            } else if (type === "incomes") {
+              setAction({ type: "addIncome", data: null });
+            }
+          }}
+          style={{
+            backgroundColor: type === "incomes" ? "green" : "red",
+            color: "white",
+          }}
+          value={
+            <div>
+              {type === "expenses"
+                ? "Add Expense"
+                : type === "incomes" && "Add Income"}
+            </div>
+          }
+        />
+      </div>
       <div
         onClick={(e) => {
           if (e.detail > 1) {
@@ -122,6 +147,7 @@ export const HeadlessTable = (props: Props) => {
                 >
                   <div className="flex justify-between items-center min-w-[40px]">
                     <Button
+                      disabled={buttonDisabled}
                       onClick={() => {
                         if (type === "expenses") {
                           handleDeleteExpense({ id: row.id });
@@ -158,6 +184,7 @@ export const HeadlessTable = (props: Props) => {
                     ></div>
 
                     <Button
+                      disabled={buttonDisabled}
                       onClick={() => {
                         if (type === "expenses") {
                           setAction({ type: "editExpense", data: row });

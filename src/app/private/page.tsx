@@ -14,7 +14,9 @@ import { Navigation } from "swiper/modules";
 import {
   unsubscribeExpenses,
   unsubscribeIncomes,
+  unsubscribeSavings,
 } from "../DataHandler/Handller";
+import Transfer from "@/components/Transfer";
 export type IArrayOfDataWithId = Array<{ data: DocumentData; id: string }>;
 
 export default function page() {
@@ -32,34 +34,50 @@ export default function page() {
   });
   const [incomes, setIncomes] = useState<IArrayOfDataWithId | null>(null);
   const [expenses, setExpenses] = useState<IArrayOfDataWithId | null>(null);
+  const [savingsIn, setSavingsIn] = useState<IArrayOfDataWithId | null>(null);
+  const [savingsOut, setSavingsOut] = useState<IArrayOfDataWithId | null>(null);
+
   const [total, setTotal] = useState<number>(0);
+  const [iHave, setIHave] = useState<number>(0);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [totalIncomes, setTotalIncomes] = useState<number>(0);
+  const [totalSavings, setTotalSavings] = useState<number>(0);
 
   const [data, setData] = useState<{
     incomes: IArrayOfDataWithId | null;
     expenses: IArrayOfDataWithId | null;
+    savings: { in: IArrayOfDataWithId | null; out: IArrayOfDataWithId | null };
   }>({
     incomes: null,
     expenses: null,
+    savings: { in: null, out: null },
   });
   const { push } = useRouter();
   const { user, logout } = useAuth();
   const [action, setAction] = useState<IAction | null>(null);
+  const [transfer, setTransfer] = useState<{} | null>(null);
 
   useEffect(() => {
-    setData({ incomes, expenses });
-  }, [incomes, expenses]);
+    setData({ incomes, expenses, savings: { in: savingsIn, out: savingsOut } });
+  }, [incomes, expenses, savingsIn, savingsOut]);
 
   useEffect(() => {
     unsubscribeIncomes(setIncomes);
     unsubscribeExpenses(setExpenses);
+    unsubscribeSavings(setSavingsIn, setSavingsOut);
   }, []);
 
   useEffect(() => {
-    if (data.expenses != null && data.incomes != null) {
+    if (
+      data.expenses != null &&
+      data.incomes != null &&
+      data.savings.in != null &&
+      data.savings.out != null
+    ) {
       let tempTotalExpenses = 0;
       let tempTotalIncomes = 0;
+      let tempTotalSavingsIn = 0;
+      let tempTotalSavingsOut = 0;
 
       data.expenses.forEach((element) => {
         if (element.data.amount != null) {
@@ -71,16 +89,43 @@ export default function page() {
           tempTotalIncomes += element.data.amount;
         }
       });
+      data.savings.in.forEach((element) => {
+        if (element.data.amount != null) {
+          tempTotalSavingsIn += element.data.amount;
+        }
+      });
+      data.savings.out.forEach((element) => {
+        if (element.data.amount != null) {
+          tempTotalSavingsOut += element.data.amount;
+        }
+      });
       setTotalExpenses(tempTotalExpenses);
       setTotalIncomes(tempTotalIncomes);
+      setTotalSavings(tempTotalSavingsIn - tempTotalSavingsOut);
       setTotal(tempTotalIncomes - tempTotalExpenses);
+      setIHave(
+        tempTotalIncomes -
+          tempTotalExpenses -
+          tempTotalSavingsIn +
+          tempTotalSavingsOut
+      );
     }
   }, [data]);
+
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
+  useEffect(() => {
+    if (action != null && transfer != null) {
+      setButtonDisabled(true);
+      return;
+    }
+    setButtonDisabled(false);
+  }, [action, transfer]);
+
   //guard
   if (user == null) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        Private :?
+        Private
       </div>
     );
   }
@@ -90,7 +135,7 @@ export default function page() {
       <div className="container space-y-4">
         <div className="flex justify-end w-full">
           <Button
-            disabled={action != null}
+            disabled={buttonDisabled}
             onClick={async () => {
               if (logout == null) {
                 return;
@@ -105,20 +150,9 @@ export default function page() {
             value={<div>Sign out</div>}
           />
         </div>
-        <div className="flex justify-between ">
+        <div className="flex justify-around ">
           <Button
-            disabled={action != null}
-            onClick={() => {
-              setAction({ type: "addIncome", data: null });
-            }}
-            style={{
-              backgroundColor: "green",
-              color: "white",
-            }}
-            value={<div>Add Income</div>}
-          />
-          <Button
-            disabled={action != null}
+            disabled={buttonDisabled}
             onClick={() => {
               push("/private/viewer");
             }}
@@ -129,42 +163,37 @@ export default function page() {
             value={<div>Viewer</div>}
           />
           <Button
-            disabled={action != null}
+            disabled={buttonDisabled}
             onClick={() => {
-              setAction({ type: "addExpense", data: null });
+              setTransfer({});
             }}
             style={{
-              backgroundColor: "red",
+              backgroundColor: "purple",
               color: "white",
             }}
-            value={<div>Add Expense</div>}
+            value={<div>Transfer</div>}
           />
         </div>
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex justify-between flex-wrap items-center gap-4">
           <div>
             <strong>Total Incomes:</strong> {totalIncomes}$
+          </div>
+          <div>
+            <strong>Total Expenses:</strong> {totalExpenses}$
           </div>
           <div>
             <strong>Total:</strong> {total}$
           </div>
           <div>
-            <strong>Total Expenses:</strong> {totalExpenses}$
+            <strong>Total Savings:</strong> {totalSavings}$
+          </div>
+          <div>
+            <strong>I Have:</strong> {iHave}$
           </div>
         </div>
       </div>
       <div className="swiper">
         <div className="swiper-wrapper w-full">
-          {data.incomes != null && (
-            <div className="swiper-slide px-4">
-              <HeadlessTable
-                type={"incomes"}
-                data={data.incomes}
-                setAction={(action: IAction | null) => {
-                  setAction(action);
-                }}
-              />
-            </div>
-          )}
           {data.expenses != null && (
             <div className="swiper-slide px-4">
               <HeadlessTable
@@ -173,6 +202,19 @@ export default function page() {
                 setAction={(action: IAction | null) => {
                   setAction(action);
                 }}
+                buttonDisabled={buttonDisabled}
+              />
+            </div>
+          )}
+          {data.incomes != null && (
+            <div className="swiper-slide px-4">
+              <HeadlessTable
+                type={"incomes"}
+                data={data.incomes}
+                setAction={(action: IAction | null) => {
+                  setAction(action);
+                }}
+                buttonDisabled={buttonDisabled}
               />
             </div>
           )}
@@ -188,11 +230,16 @@ export default function page() {
           }}
         />
       )}
+      {transfer != null && (
+        <Transfer
+          transfer={{}}
+          closeTransfer={() => {
+            setTransfer(null);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-// add tags which allow me to join them each category
-// add expenses,incomes
-// check expenses,incomes
-// overall month
+// todo: add tags which allow me to join them each category

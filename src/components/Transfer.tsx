@@ -6,41 +6,39 @@ import { docData } from "./HeadlessTable";
 import {
   IFields,
   handleAddExpense,
-  handleAddIncome,
-  handleAddSaving,
-  handleEditExpense,
-  handleEditIncome,
+  handleTransfer,
+  handleTransferArgs,
 } from "@/app/DataHandler/Handller";
 import { Button } from "./Button";
 
-export type IAction =
-  | { type: "addIncome"; data: docData | null }
-  | { type: "addExpense"; data: docData | null }
-  | { type: "editIncome"; data: docData }
-  | { type: "editExpense"; data: docData };
-
 type Props = {
-  action: IAction;
-  closePop: () => void;
+  transfer: {};
+  closeTransfer: () => void;
 };
 
-export default function Pop(props: Props) {
-  const { action, closePop } = props;
-  const [amount, setAmount] = useState<number>(action.data?.amount ?? 0);
-  const [currency, setCurrency] = useState<string>(
-    action.data?.currency ?? "USD"
-  );
-
-  const [details, setDetails] = useState<string>(action.data?.details ?? "");
-  const [selectedDate, setSelectedDate] = useState<DateValue>(
-    action.data?.date != null ? new Date(action.data.date) : new Date()
-  );
+export default function Transfer(props: Props) {
+  const { transfer, closeTransfer } = props;
+  const [amount, setAmount] = useState<number>(0);
+  const [currency, setCurrency] = useState<string>("USD");
+  const [fromTo, setFromTo] = useState<
+    "Wallet to Savings" | "Savings to Wallet"
+  >("Savings to Wallet");
+  const [selectedDate, setSelectedDate] = useState<DateValue>(new Date());
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
+  const combobox2 = useCombobox({
+    onDropdownClose: () => combobox2.resetSelectedOption(),
+  });
   const options1 = ["LBP", "USD"];
   const options = options1.map((item) => (
+    <Combobox.Option value={item} key={item}>
+      {item}
+    </Combobox.Option>
+  ));
+  const options2 = ["Wallet to Savings", "Savings to Wallet"];
+  const options3 = options2.map((item) => (
     <Combobox.Option value={item} key={item}>
       {item}
     </Combobox.Option>
@@ -86,13 +84,11 @@ export default function Pop(props: Props) {
               </g>
             </svg>
           }
-          onClick={closePop}
+          onClick={closeTransfer}
         />
       </div>
       <div className="space-y-4">
-        <div className="capitalize-first">
-          {action.type.replace(/([A-Z])/g, " $1")}
-        </div>
+        <div className="capitalize-first">Transfer {fromTo}</div>
         <div className="w-full space-y-4">
           <div>Amount</div>
           <input
@@ -104,6 +100,33 @@ export default function Pop(props: Props) {
             }}
             className="w-full"
           />
+          <div>fromTo</div>
+          <Combobox
+            store={combobox2}
+            onOptionSubmit={(val) => {
+              if (val == "Wallet to Savings" || val == "Savings to Wallet") {
+                setFromTo(val);
+              }
+              combobox2.closeDropdown();
+            }}
+          >
+            <Combobox.Target>
+              <InputBase
+                component="button"
+                type="button"
+                pointer
+                rightSection={<Combobox.Chevron />}
+                rightSectionPointerEvents="none"
+                onClick={() => combobox2.toggleDropdown()}
+              >
+                {fromTo || <Input.Placeholder>Pick value</Input.Placeholder>}
+              </InputBase>
+            </Combobox.Target>
+
+            <Combobox.Dropdown>
+              <Combobox.Options>{options3}</Combobox.Options>
+            </Combobox.Dropdown>
+          </Combobox>
           <div>Currency</div>
           <Combobox
             store={combobox}
@@ -129,15 +152,6 @@ export default function Pop(props: Props) {
               <Combobox.Options>{options}</Combobox.Options>
             </Combobox.Dropdown>
           </Combobox>
-          <div>Details</div>
-          <textarea
-            placeholder="Details"
-            value={details}
-            onChange={(e) => {
-              setDetails(e.target.value);
-            }}
-            className="px-3 w-full"
-          />
           <div>Date</div>
           <DateTimePicker
             value={selectedDate}
@@ -149,41 +163,21 @@ export default function Pop(props: Props) {
             <Button
               className="capitalize-first"
               onClick={async () => {
-                const fields: IFields = {
+                const fields: handleTransferArgs = {
                   amount: amount,
                   date: selectedDate!.getTime(),
-                  details: details,
-                  currency: currency,
+                  fromTo: fromTo,
+                  currency: "USD",
                 };
-                if (action.type == "addExpense") {
-                  handleAddExpense(fields).then(() => {
-                    closePop();
-                  });
-                } else if (action.type == "addIncome") {
-                  handleAddIncome(fields).then(() => {
-                    closePop();
-                  });
-                } else if (action.type == "editExpense") {
-                  handleEditExpense({
-                    data: fields,
-                    id: action.data.id,
-                  }).then(() => {
-                    closePop();
-                  });
-                } else if (action.type == "editIncome") {
-                  handleEditIncome({
-                    data: fields,
-                    id: action.data.id,
-                  }).then(() => {
-                    closePop();
-                  });
-                }
+                handleTransfer(fields).then(() => {
+                  closeTransfer();
+                });
               }}
               style={{
                 backgroundColor: "black",
                 color: "white",
               }}
-              value={<div>{action.type.replace(/([A-Z])/g, " $1")}</div>}
+              value={<div>Transfer {fromTo}</div>}
             />
           </div>
         </div>

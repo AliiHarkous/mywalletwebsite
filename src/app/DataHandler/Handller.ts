@@ -1,22 +1,16 @@
 import { db } from "@/firebase/firebase";
+import { IArrayOfDataWithId } from "../private/page";
 import {
-  DocumentData,
-  Query,
   addDoc,
   collection,
   deleteDoc,
   doc,
-  getDoc,
-  getDocs,
-  limit,
   onSnapshot,
   orderBy,
   query,
   updateDoc,
   where,
 } from "firebase/firestore";
-import { IArrayOfDataWithId } from "../private/page";
-import { DateValue } from "@mantine/dates";
 
 // fetch Documents
 export const unsubscribeIncomes = (
@@ -170,4 +164,70 @@ type handleDeleteIncomeArgs = {
 export const handleDeleteIncome = async (args: handleDeleteIncomeArgs) => {
   const id = args.id;
   await deleteDoc(doc(db, "Wallet", "Incomes", "children", id));
+};
+
+// Savings
+
+export const unsubscribeSavings = (
+  setSavingsIn: (savingsResIn: IArrayOfDataWithId) => void,
+  setSavingsOut: (savingsResOut: IArrayOfDataWithId) => void
+) => {
+  onSnapshot(
+    query(collection(db, "Savings", "IN", "children"), orderBy("date", "desc")),
+    (querySnapshot) => {
+      const savingsResIn: IArrayOfDataWithId = querySnapshot.docs.map(
+        (doc) => ({
+          id: doc.id,
+          data: doc.data(),
+        })
+      );
+      setSavingsIn(savingsResIn);
+    }
+  );
+  onSnapshot(
+    query(
+      collection(db, "Savings", "OUT", "children"),
+      orderBy("date", "desc")
+    ),
+    (querySnapshot) => {
+      const savingsResOut: IArrayOfDataWithId = querySnapshot.docs.map(
+        (doc) => ({
+          id: doc.id,
+          data: doc.data(),
+        })
+      );
+      setSavingsOut(savingsResOut);
+    }
+  );
+};
+
+type handleAddSavingArgs = { amount: number; date: number };
+export const handleAddSavingIn = async (args: handleAddSavingArgs) => {
+  const { amount, date } = args;
+  await addDoc(collection(db, "Savings", "IN", "children"), {
+    amount,
+    date,
+  });
+};
+export const handleAddSavingOut = async (args: handleAddSavingArgs) => {
+  const { amount, date } = args;
+  await addDoc(collection(db, "Savings", "OUT", "children"), {
+    amount,
+    date,
+  });
+};
+
+export type handleTransferArgs = {
+  amount: number;
+  currency: "USD";
+  fromTo: "Wallet to Savings" | "Savings to Wallet";
+  date: number;
+};
+export const handleTransfer = async (args: handleTransferArgs) => {
+  const { amount, currency, fromTo, date } = args;
+  if (fromTo === "Savings to Wallet") {
+    handleAddSavingOut({ amount, date });
+  } else if (fromTo == "Wallet to Savings") {
+    handleAddSavingIn({ amount, date });
+  }
 };
